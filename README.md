@@ -9,7 +9,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
 [![Docker](https://img.shields.io/badge/Docker-24-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-15%20Passed-brightgreen?style=for-the-badge)](#testing)
+[![Tests](https://img.shields.io/badge/Tests-Planned-brightgreen?style=for-the-badge)](#testing)
 
 A full-featured Security Operations Center platform with real-time log ingestion, detection engine, MITRE ATT&CK mapping, threat intelligence, incident management, and automated SOAR playbooks.
 

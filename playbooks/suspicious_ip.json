@@ -1,0 +1,21 @@
+{
+  "name": "suspicious_ip",
+  "description": "Response playbook for suspicious IP activity",
+  "trigger": "suspicious_login_alert",
+  "actions": [
+    {
+      "type": "notify",
+      "description": "Notify SOC analyst for manual review",
+      "channel": "soc-alerts"
+    },
+    {
+      "type": "block_ip",
+      "description": "Block IP if confirmed malicious",
+      "target": "source_ip"
+    }
+  ],
+  "escalation": {
+    "timeframe_minutes": 15,
+    "escalate_to": "soc-lead"
+  }
+}

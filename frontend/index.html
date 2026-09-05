@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueShield SOC</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #111; color: #ccc; height: 100vh; overflow: hidden; }
+
+        /* Login */
+        .login-page { display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-box { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 32px; width: 360px; }
+        .login-box h2 { color: #fff; margin-bottom: 20px; text-align: center; }
+        .login-box input { width: 100%; padding: 10px; margin-bottom: 12px; background: #222; border: 1px solid #444; border-radius: 4px; color: #fff; font-size: 14px; }
+        .login-box input:focus { outline: none; border-color: #888; }
+        .login-box button { width: 100%; padding: 10px; background: #444; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .login-box button:hover { background: #555; }
+        .login-error { color: #f88; font-size: 13px; margin-bottom: 10px; display: none; }
+        .login-hint { color: #666; font-size: 12px; margin-top: 12px; text-align: center; }
+
+        /* Layout */
+        .app { display: none; height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; width: 200px; height: 100vh; background: #1a1a1a; border-right: 1px solid #333; padding: 16px 0; overflow-y: auto; }
+        .sidebar h3 { color: #fff; padding: 0 16px 12px; border-bottom: 1px solid #333; font-size: 16px; }
+        .sidebar .user { padding: 10px 16px; font-size: 12px; color: #888; border-bottom: 1px solid #333; }
+        .sidebar ul { list-style: none; margin-top: 8px; }
+        .sidebar li { padding: 10px 16px; cursor: pointer; font-size: 13px; color: #aaa; }
+        .sidebar li:hover { background: #222; color: #fff; }
+        .sidebar li.active { background: #222; color: #fff; border-left: 2px solid #fff; }
+        .sidebar li.logout { color: #f66; margin-top: auto; }
+
+        .main { margin-left: 200px; height: 100vh; overflow-y: auto; padding: 20px; }
+
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h1 { font-size: 18px; color: #fff; }
+        .badge { background: #2a2a2a; color: #aaa; padding: 3px 10px; border-radius: 10px; font-size: 11px; }
+
+        /* Cards */
+        .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .card { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 16px; }
+        .card .num { font-size: 28px; color: #fff; font-weight: bold; }
+        .card .label { font-size: 12px; color: #666; margin-top: 4px; }
+
+        /* Grid */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .section { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 16px; }
+        .section h4 { color: #fff; font-size: 13px; margin-bottom: 12px; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #222; color: #888; padding: 8px 10px; text-align: left; font-weight: 600; }
+        td { padding: 8px 10px; border-bottom: 1px solid #222; }
+        tr:hover { background: #1e1e1e; }
+
+        /* Badges */
+        .sev { padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+        .sev-critical { background: #400; color: #f88; }
+        .sev-high { background: #430; color: #fa8; }
+        .sev-medium { background: #440; color: #ff8; }
+        .sev-low { background: #040; color: #8f8; }
+        .status { padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+        .status-open { background: #113; color: #8af; }
+        .status-investigating { background: #320; color: #fa8; }
+        .status-resolved { background: #030; color: #8f8; }
+
+        /* Buttons */
+        .btn { padding: 4px 10px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .btn-gray { background: #333; color: #ccc; }
+        .btn-gray:hover { background: #444; }
+        .btn-dark { background: #222; color: #aaa; }
+        .btn-dark:hover { background: #333; }
+
+        /* Filter */
+        .filter { display: flex; gap: 8px; margin-bottom: 12px; }
+        .filter select, .filter input { padding: 6px 10px; background: #222; border: 1px solid #444; border-radius: 4px; color: #ccc; font-size: 13px; }
+
+        /* Bar Chart */
+        .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .bar-label { width: 120px; font-size: 12px; color: #888; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .bar-bg { flex: 1; background: #222; border-radius: 3px; height: 18px; }
+        .bar-fill { height: 100%; background: #555; border-radius: 3px; display: flex; align-items: center; padding-left: 6px; font-size: 11px; color: #fff; min-width: 20px; }
+        .bar-count { width: 40px; font-size: 12px; color: #888; text-align: right; }
+
+        /* Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .modal.hidden { display: none; }
+        .modal-box { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 24px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative; }
+        .modal-close { position: absolute; top: 10px; right: 14px; cursor: pointer; color: #888; font-size: 18px; }
+        .modal-close:hover { color: #fff; }
+        .detail-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #222; font-size: 13px; }
+        .detail-row .lbl { color: #888; }
+        .detail-row .val { color: #fff; }
+
+        /* Upload */
+        .upload-area { border: 2px dashed #444; border-radius: 6px; padding: 32px; text-align: center; cursor: pointer; margin-bottom: 12px; }
+        .upload-area:hover { border-color: #888; }
+        .upload-area input { display: none; }
+        .upload-result { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 16px; margin-top: 12px; display: none; }
+
+        /* Playbook */
+        .pb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .pb-card { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 16px; }
+        .pb-card h5 { color: #fff; margin-bottom: 6px; font-size: 14px; }
+        .pb-card p { color: #666; font-size: 12px; margin-bottom: 10px; }
+        .pb-step { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #aaa; margin-bottom: 4px; }
+        .pb-num { background: #333; color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+
+        /* Lookup */
+        .lookup { display: flex; gap: 8px; margin-bottom: 12px; }
+        .lookup input { flex: 1; padding: 8px; background: #222; border: 1px solid #444; border-radius: 4px; color: #fff; font-size: 13px; }
+        .lookup button { padding: 8px 16px; background: #444; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+        .lookup-result { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 12px; display: none; }
+        .lookup-result pre { color: #aaa; font-size: 12px; white-space: pre-wrap; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <!-- LOGIN -->
+    <div id="login-page" class="login-page">
+        <div class="login-box">
+            <h2>BlueShield SOC</h2>
+            <div id="login-error" class="login-error"></div>
+            <input type="text" id="login-user" placeholder="Username" value="admin">
+            <input type="password" id="login-pass" placeholder="Password" value="admin123">
+            <button onclick="handleLogin()">Login</button>
+            <div class="login-hint">admin / admin123</div>
+        </div>
+    </div>
+
+    <!-- APP -->
+    <div id="app" class="app">
+        <div class="sidebar">
+            <h3>BlueShield</h3>
+            <div class="user" id="user-info"></div>
+            <ul>
+                <li class="active" onclick="showPage('dashboard',this)">Dashboard</li>
+                <li onclick="showPage('alerts',this)">Alerts</li>
+                <li onclick="showPage('incidents',this)">Incidents</li>
+                <li onclick="showPage('metrics',this)">Metrics</li>
+                <li onclick="showPage('playbooks',this)">Playbooks</li>
+                <li onclick="showPage('threat-intel',this)">Threat Intel</li>
+                <li onclick="showPage('upload',this)">Upload Logs</li>
+                <li onclick="showPage('audit-logs',this)">Audit Logs</li>
+                <li class="logout" onclick="handleLogout()">Logout</li>
+            </ul>
+        </div>
+
+        <div class="main">
+            <!-- DASHBOARD -->
+            <div id="page-dashboard" class="page">
+                <div class="header"><h1>Dashboard</h1><span class="badge">LIVE</span></div>
+                <div class="cards">
+                    <div class="card"><div class="num" id="s-events">0</div><div class="label">Events</div></div>
+                    <div class="card"><div class="num" id="s-alerts">0</div><div class="label">Alerts</div></div>
+                    <div class="card"><div class="num" id="s-incidents">0</div><div class="label">Incidents</div></div>
+                    <div class="card"><div class="num" id="s-iocs">0</div><div class="label">IOCs</div></div>
+                </div>
+                <div class="grid">
+                    <div class="section"><h4>Alerts by Severity</h4><div id="chart-sev"></div></div>
+                    <div class="section"><h4>Top Rules</h4><div id="chart-rules"></div></div>
+                </div>
+                <div class="grid">
+                    <div class="section"><h4>Top IPs</h4><div id="chart-ips"></div></div>
+                    <div class="section"><h4>MITRE Techniques</h4><div id="chart-mitre"></div></div>
+                </div>
+                <div class="section"><h4>Recent Alerts</h4><table><thead><tr><th>ID</th><th>Title</th><th>Sev</th><th>IP</th><th>Risk</th><th>Time</th></tr></thead><tbody id="recent-alerts"></tbody></table></div>
+            </div>
+
+            <!-- ALERTS -->
+            <div id="page-alerts" class="page" style="display:none">
+                <div class="header"><h1>Alerts</h1></div>
+                <div class="filter">
+                    <select id="f-sev" onchange="loadAlerts()"><option value="">All Severity</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+                    <select id="f-status" onchange="loadAlerts()"><option value="">All Status</option><option value="open">Open</option><option value="investigating">Investigating</option><option value="resolved">Resolved</option></select>
+                    <select id="f-rule" onchange="loadAlerts()"><option value="">All Rules</option><option value="brute_force">Brute Force</option><option value="suspicious_authentication">Suspicious Auth</option><option value="password_spray">Password Spray</option><option value="impossible_login">Impossible Login</option><option value="suspicious_process">Suspicious Process</option><option value="malware_detection">Malware</option></select>
+                </div>
+                <div class="section"><table><thead><tr><th>ID</th><th>Title</th><th>Sev</th><th>Status</th><th>IP</th><th>Rule</th><th>Risk</th><th>Actions</th></tr></thead><tbody id="alerts-table"></tbody></table></div>
+            </div>
+
+            <!-- INCIDENTS -->
+            <div id="page-incidents" class="page" style="display:none">
+                <div class="header"><h1>Incidents</h1></div>
+                <div class="cards">
+                    <div class="card"><div class="num" id="i-new">0</div><div class="label">New</div></div>
+                    <div class="card"><div class="num" id="i-inv">0</div><div class="label">Investigating</div></div>
+                    <div class="card"><div class="num" id="i-con">0</div><div class="label">Contained</div></div>
+                    <div class="card"><div class="num" id="i-clo">0</div><div class="label">Closed</div></div>
+                </div>
+                <div class="section"><table><thead><tr><th>ID</th><th>Title</th><th>Priority</th><th>Status</th><th>IP</th><th>Risk</th><th>Actions</th></tr></thead><tbody id="incidents-table"></tbody></table></div>
+            </div>
+
+            <!-- METRICS -->
+            <div id="page-metrics" class="page" style="display:none">
+                <div class="header"><h1>Metrics</h1></div>
+                <div class="cards">
+                    <div class="card"><div class="num" id="mttd">-</div><div class="label">MTTD</div></div>
+                    <div class="card"><div class="num" id="mttr">-</div><div class="label">MTTR</div></div>
+                    <div class="card"><div class="num" id="m-events">0</div><div class="label">Total Events</div></div>
+                    <div class="card"><div class="num" id="m-incidents">0</div><div class="label">Total Incidents</div></div>
+                </div>
+                <div class="grid">
+                    <div class="section"><h4>Events by Type</h4><div id="chart-etype"></div></div>
+                    <div class="section"><h4>Events by Source</h4><div id="chart-esrc"></div></div>
+                </div>
+            </div>
+
+            <!-- PLAYBOOKS -->
+            <div id="page-playbooks" class="page" style="display:none">
+                <div class="header"><h1>Playbooks</h1></div>
+                <div id="playbooks-grid" class="pb-grid"></div>
+            </div>
+
+            <!-- THREAT INTEL -->
+            <div id="page-threat-intel" class="page" style="display:none">
+                <div class="header"><h1>Threat Intel</h1></div>
+                <div class="cards">
+                    <div class="card"><div class="num" id="ti-ip">0</div><div class="label">Malicious IPs</div></div>
+                    <div class="card"><div class="num" id="ti-hash">0</div><div class="label">Malicious Hashes</div></div>
+                    <div class="card"><div class="num" id="ti-url">0</div><div class="label">Suspicious URLs</div></div>
+                    <div class="card"><div class="num" id="ti-total">0</div><div class="label">Total IOCs</div></div>
+                </div>
+                <div class="section">
+                    <h4>IP Lookup</h4>
+                    <div class="lookup">
+                        <input type="text" id="ip-input" placeholder="Enter IP (e.g. 203.0.113.50)">
+                        <button onclick="lookupIP()">Lookup</button>
+                    </div>
+                    <div id="ip-result" class="lookup-result"></div>
+                </div>
+            </div>
+
+            <!-- UPLOAD -->
+            <div id="page-upload" class="page" style="display:none">
+                <div class="header"><h1>Upload Logs</h1></div>
+                <div class="section">
+                    <h4>Upload Log File</h4>
+                    <div class="upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                        <p style="color:#666">Click to select file</p>
+                        <input type="file" id="file-input" accept=".json,.csv,.log,.txt">
+                    </div>
+                    <select id="src-type" style="padding:6px;background:#222;border:1px solid #444;border-radius:4px;color:#ccc;font-size:13px">
+                        <option value="json">JSON</option>
+                        <option value="windows">Windows</option>
+                        <option value="linux">Linux</option>
+                        <option value="nginx">Nginx</option>
+                        <option value="firewall">Firewall</option>
+                    </select>
+                    <button class="btn btn-gray" style="margin-left:8px" onclick="uploadFile()">Upload</button>
+                    <div id="upload-result" class="upload-result"></div>
+                </div>
+            </div>
+
+            <!-- AUDIT LOGS -->
+            <div id="page-audit-logs" class="page" style="display:none">
+                <div class="header"><h1>Audit Logs</h1></div>
+                <div class="section"><table><thead><tr><th>Time</th><th>Analyst</th><th>Action</th><th>Target</th><th>Details</th><th>Result</th></tr></thead><tbody id="audit-table"></tbody></table></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="alert-modal" class="modal hidden">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal('alert-modal')">&times;</span>
+            <div id="alert-detail"></div>
+        </div>
+    </div>
+    <div id="incident-modal" class="modal hidden">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal('incident-modal')">&times;</span>
+            <div id="incident-detail"></div>
+        </div>
+    </div>
+
+    <script>
+    const API = 'http://localhost:8000';
+    let token = localStorage.getItem('bs_token');
+    let user = null;
+
+    async function handleLogin() {
+        const u = document.getElementById('login-user').value;
+        const p = document.getElementById('login-pass').value;
+        const err = document.getElementById('login-error');
+        try {
+            const r = await fetch(`${API}/api/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
+            const d = await r.json();
+            if (!r.ok) { err.textContent = d.detail||'Failed'; err.style.display='block'; return; }
+            token = d.access_token; user = d.user;
+            localStorage.setItem('bs_token', token);
+            localStorage.setItem('bs_user', JSON.stringify(user));
+            showApp();
+        } catch(e) { err.textContent='Connection error'; err.style.display='block'; }
+    }
+
+    function handleLogout() {
+        token=null; user=null; localStorage.removeItem('bs_token'); localStorage.removeItem('bs_user');
+        document.getElementById('app').style.display='none';
+        document.getElementById('login-page').style.display='flex';
+    }
+
+    function showApp() {
+        document.getElementById('login-page').style.display='none';
+        document.getElementById('app').style.display='block';
+        if(user) document.getElementById('user-info').textContent=user.username+' ('+user.role+')';
+        showPage('dashboard', document.querySelector('.sidebar li'));
+    }
+
+    function hdr() { return {'Authorization':'Bearer '+token,'Content-Type':'application/json'}; }
+    async function af(url, opts={}) { opts.headers={...hdr(),...opts.headers}; const r=await fetch(url,opts); if(r.status===401){handleLogout();return null;} return r; }
+
+    function showPage(name, el) {
+        document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+        document.querySelectorAll('.sidebar li').forEach(l=>l.classList.remove('active'));
+        document.getElementById('page-'+name).style.display='block';
+        if(el) el.classList.add('active');
+        const fn = {dashboard:loadDashboard,alerts:loadAlerts,incidents:loadIncidents,metrics:loadMetrics,playbooks:loadPlaybooks,'threat-intel':loadThreatIntel,'audit-logs':loadAuditLogs};
+        if(fn[name]) fn[name]();
+    }
+
+    // DASHBOARD
+    async function loadDashboard() {
+        const r = await af(`${API}/api/dashboard/`); if(!r)return; const d=await r.json();
+        document.getElementById('s-events').textContent=d.summary.total_events;
+        document.getElementById('s-alerts').textContent=d.summary.total_alerts;
+        document.getElementById('s-incidents').textContent=d.summary.total_incidents;
+        document.getElementById('s-iocs').textContent=d.threat_intel.total_iocs;
+        renderBar('chart-sev', d.alert_stats.by_sev, 'sev');
+        renderBar('chart-rules', arrToObj(d.top_detection_rules), 'rule');
+        renderBar('chart-ips', arrToObj(d.top_source_ips), 'ip');
+        renderBarObj('chart-mitre', d.mitre_techniques);
+        const a=await af(`${API}/api/alerts/?limit=10`); if(a){const al=await a.json(); renderRecentAlerts(al);}
+    }
+
+    function renderBar(id, data, cls) {
+        const el=document.getElementById(id); if(!data||!Object.keys(data).length){el.innerHTML='<span style="color:#555">No data</span>';return;}
+        const mx=Math.max(...Object.values(data),1);
+        el.innerHTML=Object.entries(data).map(([k,v])=>`<div class="bar-row"><span class="bar-label">${k}</span><div class="bar-bg"><div class="bar-fill" style="width:${(v/mx)*100}%">${v}</div></div></div>`).join('');
+    }
+    function renderBarObj(id, data) {
+        const el=document.getElementById(id); if(!data||!Object.keys(data).length){el.innerHTML='<span style="color:#555">No data</span>';return;}
+        const mx=Math.max(...Object.values(data).map(v=>v.count||0),1);
+        el.innerHTML=Object.entries(data).map(([k,v])=>`<div class="bar-row"><span class="bar-label">${k}</span><div class="bar-bg"><div class="bar-fill" style="width:${(v.count/mx)*100}%">${v.count}</div></div></div>`).join('');
+    }
+    function arrToObj(arr) { if(!arr||!arr.length)return{}; const o={}; arr.forEach(i=>o[i.rule||i.ip||i.name||'?']=i.count); return o; }
+    function renderRecentAlerts(a) {
+        document.getElementById('recent-alerts').innerHTML=a.slice(0,10).map(x=>`<tr><td>${x.alert_id||x.id}</td><td>${x.title}</td><td><span class="sev sev-${x.severity}">${x.severity}</span></td><td>${x.source_ip||'-'}</td><td>${x.risk_score||0}</td><td>${fmt(x.created_at)}</td></tr>`).join('');
+    }
+
+    // ALERTS
+    async function loadAlerts() {
+        let url=`${API}/api/alerts/?limit=100`;
+        const s=document.getElementById('f-sev').value; if(s)url+=`&severity=${s}`;
+        const st=document.getElementById('f-status').value; if(st)url+=`&status=${st}`;
+        const ru=document.getElementById('f-rule').value; if(ru)url+=`&rule_name=${ru}`;
+        const r=await af(url); if(!r)return; const a=await r.json();
+        document.getElementById('alerts-table').innerHTML=a.map(x=>`<tr><td>${x.alert_id||x.id}</td><td>${x.title}</td><td><span class="sev sev-${x.severity}">${x.severity}</span></td><td><span class="status status-${x.status}">${x.status}</span></td><td>${x.source_ip||'-'}</td><td>${x.rule_name||'-'}</td><td>${x.risk_score||0}</td><td><button class="btn btn-gray" onclick="showAlert(${x.id})">Investigate</button> <button class="btn btn-dark" onclick="respond(${x.id},'${x.rule_name}')">Respond</button></td></tr>`).join('');
+    }
+    async function showAlert(id) {
+        const r=await af(`${API}/api/alerts/${id}`); if(!r)return; const a=await r.json();
+        let tiHtml = '<span style="color:#666">Loading threat intel...</span>';
+        document.getElementById('alert-detail').innerHTML=`
+            <h4 style="color:#fff;margin-bottom:12px">${a.alert_id} — ${a.title}</h4>
+            <div class="detail-row"><span class="lbl">Severity</span><span class="sev sev-${a.severity}">${a.severity}</span></div>
+            <div class="detail-row"><span class="lbl">Status</span><span class="status status-${a.status}">${a.status}</span></div>
+            <div class="detail-row"><span class="lbl">Risk Score</span><span>${a.risk_score}/100</span></div>
+            <div class="detail-row"><span class="lbl">Source IP</span><span class="val">${a.source_ip||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Destination IP</span><span class="val">${a.destination_ip||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Username</span><span class="val">${a.username||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Hostname</span><span class="val">${a.hostname||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Rule</span><span class="val">${a.rule_name||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">MITRE Technique</span><span class="val">${a.mitre_technique||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">MITRE Tactic</span><span class="val">${a.mitre_tactic||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Event Count</span><span class="val">${a.event_count||0}</span></div>
+            <div class="detail-row"><span class="lbl">First Seen</span><span class="val">${fmt(a.first_seen)}</span></div>
+            <div class="detail-row"><span class="lbl">Last Seen</span><span class="val">${fmt(a.last_seen)}</span></div>
+            <div class="detail-row"><span class="lbl">Created</span><span class="val">${fmt(a.created_at)}</span></div>
+            ${a.description ? `<div style="margin-top:12px;padding:10px;background:#222;border-radius:4px;font-size:12px;color:#aaa"><strong>Description:</strong><br>${a.description}</div>` : ''}
+            <div style="margin-top:12px;padding:10px;background:#222;border-radius:4px"><strong style="color:#fff;font-size:12px">Threat Intel</strong><div id="alert-ti" style="margin-top:6px">${tiHtml}</div></div>
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-gray" onclick="updateAlert(${a.id},'investigating')">Mark Investigating</button>
+                <button class="btn btn-gray" onclick="updateAlert(${a.id},'resolved')">Resolve</button>
+                <button class="btn btn-gray" onclick="respond(${a.id},'${a.rule_name}')">Run Playbook</button>
+            </div>`;
+        document.getElementById('alert-modal').classList.remove('hidden');
+        if(a.source_ip) loadAlertTI(a.source_ip);
+    }
+    async function loadAlertTI(ip) {
+        const r=await af(`${API}/api/threat-intel/ip/${ip}`); if(!r)return; const d=await r.json();
+        const ti=d.threat_intel||{}; const geo=d.geo||{};
+        document.getElementById('alert-ti').innerHTML=`
+            <div class="detail-row"><span class="lbl">Reputation</span><span class="val">${ti.reputation||'unknown'}</span></div>
+            <div class="detail-row"><span class="lbl">Threat Score</span><span class="val">${ti.score||0}/100</span></div>
+            <div class="detail-row"><span class="lbl">Country</span><span class="val">${geo.country||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">City</span><span class="val">${geo.city||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Org</span><span class="val">${geo.org||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Risk Score</span><span class="val">${d.risk_score||0}/100</span></div>`;
+    }
+    async function updateAlert(id,s) { await af(`${API}/api/alerts/${id}/status?status=${s}`,{method:'PUT'}); closeModal('alert-modal'); loadAlerts(); }
+    async function respond(id,rule) {
+        const m={'brute_force':'brute_force','suspicious_authentication':'suspicious_ip','password_spray':'brute_force','impossible_login':'suspicious_ip','suspicious_process':'malware','malware_detection':'malware'};
+        const r=await af(`${API}/api/alerts/${id}/respond?playbook_name=${m[rule]||'suspicious_ip'}`,{method:'POST'});
+        if(r){const d=await r.json(); alert('Done! Incident: '+d.incident_id);}
+        loadAlerts();
+    }
+
+    // INCIDENTS
+    async function loadIncidents() {
+        const r=await af(`${API}/api/incidents/`); if(!r)return; const d=await r.json();
+        document.getElementById('incidents-table').innerHTML=d.map(x=>`<tr><td>${x.incident_id||x.id}</td><td>${x.title}</td><td><span class="sev sev-${(x.severity||'medium').toLowerCase()}">${x.priority}</span></td><td><span class="status status-${x.status}">${x.status}</span></td><td>${x.source_ip||'-'}</td><td>${x.risk_score||0}</td><td><button class="btn btn-dark" onclick="showIncident(${x.id})">View</button></td></tr>`).join('');
+        const s=await af(`${API}/api/incidents/stats`); if(s){const st=await s.json(); document.getElementById('i-new').textContent=st.by_status.new||0; document.getElementById('i-inv').textContent=st.by_status.investigating||0; document.getElementById('i-con').textContent=st.by_status.contained||0; document.getElementById('i-clo').textContent=st.by_status.closed||0;}
+    }
+    async function showIncident(id) {
+        const r=await af(`${API}/api/incidents/${id}`); if(!r)return; const i=await r.json();
+        let timeline=[]; try{timeline=JSON.parse(i.timeline||'[]');}catch(e){}
+        document.getElementById('incident-detail').innerHTML=`
+            <h4 style="color:#fff;margin-bottom:12px">${i.incident_id} — ${i.title}</h4>
+            <div class="detail-row"><span class="lbl">Priority</span><span class="sev sev-${(i.severity||'medium').toLowerCase()}">${i.priority}</span></div>
+            <div class="detail-row"><span class="lbl">Status</span><span class="status status-${i.status}">${i.status}</span></div>
+            <div class="detail-row"><span class="lbl">Risk Score</span><span>${i.risk_score}/100</span></div>
+            <div class="detail-row"><span class="lbl">Source IP</span><span class="val">${i.source_ip||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Username</span><span class="val">${i.username||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Hostname</span><span class="val">${i.hostname||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">MITRE</span><span class="val">${i.mitre_technique||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Assigned To</span><span class="val">${i.assigned_to||'-'}</span></div>
+            <div class="detail-row"><span class="lbl">Created</span><span class="val">${fmt(i.created_at)}</span></div>
+            ${i.description ? `<div style="margin-top:12px;padding:10px;background:#222;border-radius:4px;font-size:12px;color:#aaa">${i.description}</div>` : ''}
+            ${timeline.length ? `<div style="margin-top:12px"><strong style="color:#fff;font-size:12px">Timeline</strong><div style="margin-top:6px">${timeline.map(t=>`<div style="padding:6px;background:#222;border-radius:4px;margin-bottom:4px;font-size:12px"><span style="color:#888">${fmt(t.time)}</span> — ${t.event}</div>`).join('')}</div></div>` : ''}
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-gray" onclick="updateInc(${i.id},'investigating')">Investigating</button>
+                <button class="btn btn-gray" onclick="updateInc(${i.id},'contained')">Contained</button>
+                <button class="btn btn-gray" onclick="updateInc(${i.id},'closed')">Close</button>
+            </div>`;
+        document.getElementById('incident-modal').classList.remove('hidden');
+    }
+    async function updateInc(id,s) { await af(`${API}/api/incidents/${id}/status?status=${s}`,{method:'PUT'}); closeModal('incident-modal'); loadIncidents(); }
+
+    // METRICS
+    async function loadMetrics() {
+        const r=await af(`${API}/api/metrics/`); if(!r)return; const d=await r.json();
+        document.getElementById('mttd').textContent=d.mttd.formatted;
+        document.getElementById('mttr').textContent=d.mttr.formatted;
+        document.getElementById('m-events').textContent=d.event_stats.total||0;
+        document.getElementById('m-incidents').textContent=d.incident_stats.total||0;
+        renderBar('chart-etype', d.event_stats.by_type);
+        renderBar('chart-esrc', d.event_stats.by_source);
+    }
+
+    // PLAYBOOKS
+    async function loadPlaybooks() {
+        const r=await af(`${API}/api/playbooks/`); if(!r)return; const p=await r.json();
+        const info={'brute_force':['Receive alert','Extract IP','Risk Score','Create Incident','Notify Analyst'],'suspicious_ip':['Extract IP','Threat Intel','Risk Score','Create Incident'],'malware':['Extract Hash','IOC Lookup','Risk Score','Create Incident','Quarantine'],'phishing':['Extract URL','Enrichment','Risk Score','Incident']};
+        document.getElementById('playbooks-grid').innerHTML=p.map(x=>`<div class="pb-card"><h5>${x.name}</h5><p>${x.description}</p>${(info[x.name]||[]).map((s,i)=>`<div class="pb-step"><span class="pb-num">${i+1}</span>${s}</div>`).join('')}</div>`).join('');
+    }
+
+    // THREAT INTEL
+    async function loadThreatIntel() {
+        const r=await af(`${API}/api/threat-intel/iocs`); if(!r)return; const d=await r.json();
+        document.getElementById('ti-ip').textContent=d.malicious_ips;
+        document.getElementById('ti-hash').textContent=d.malicious_hashes;
+        document.getElementById('ti-url').textContent=d.suspicious_urls;
+        document.getElementById('ti-total').textContent=d.total_iocs;
+    }
+    async function lookupIP() {
+        const ip=document.getElementById('ip-input').value.trim(); if(!ip)return;
+        const r=await af(`${API}/api/threat-intel/ip/${ip}`); if(!r)return; const d=await r.json();
+        const el=document.getElementById('ip-result'); el.style.display='block';
+        el.innerHTML=`<pre>${JSON.stringify(d,null,2)}</pre>`;
+    }
+
+    // AUDIT LOGS
+    async function loadAuditLogs() {
+        const r=await af(`${API}/api/audit-logs/?limit=100`); if(!r)return; const l=await r.json();
+        document.getElementById('audit-table').innerHTML=l.map(x=>`<tr><td>${fmt(x.timestamp)}</td><td>${x.analyst}</td><td>${x.action}</td><td>${x.target_type||'-'}#${x.target_id||''}</td><td>${x.details||'-'}</td><td>${x.result}</td></tr>`).join('');
+    }
+
+    // UPLOAD
+    document.getElementById('drop-zone').addEventListener('dragover',e=>e.preventDefault());
+    document.getElementById('drop-zone').addEventListener('drop',e=>{e.preventDefault();document.getElementById('file-input').files=e.dataTransfer.files;});
+    async function uploadFile() {
+        const f=document.getElementById('file-input').files[0]; if(!f){alert('Select a file');return;}
+        const fd=new FormData(); fd.append('file',f);
+        const st=document.getElementById('src-type').value;
+        const r=await fetch(`${API}/api/logs/upload?source_type=${st}`,{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+        if(!r.ok){const e=await r.json(); alert(e.detail||'Upload failed'); return;}
+        const d=await r.json();
+        const el=document.getElementById('upload-result'); el.style.display='block';
+        el.innerHTML=`<strong style="color:#8f8">Upload Complete</strong><br>File: ${d.filename}<br>Events: ${d.events_parsed}<br>Alerts: ${d.alerts_generated}${d.alerts.length?'<br><br>'+d.alerts.map(a=>'• '+(a.title||JSON.stringify(a))).join('<br>'):''}`;
+    }
+
+    // UTILS
+    function fmt(t) { if(!t)return'-'; try{return new Date(t).toLocaleString();}catch{return t;} }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // INIT
+    if(token && localStorage.getItem('bs_user')) { user=JSON.parse(localStorage.getItem('bs_user')); showApp(); }
+    </script>
+</body>
+</html>

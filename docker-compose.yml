@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16
+    container_name: blueshield-db
+    environment:
+      POSTGRES_USER: blueshield
+      POSTGRES_PASSWORD: blueshield
+      POSTGRES_DB: blueshield_soc
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blueshield -d blueshield_soc"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: blueshield-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: blueshield-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://blueshield:blueshield@db:5432/blueshield_soc
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: blueshield-soc-secret-key-change-in-production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./playbooks:/app/playbooks
+
+  frontend:
+    image: nginx:alpine
+    container_name: blueshield-frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  redisdata:

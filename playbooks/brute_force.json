@@ -1,0 +1,31 @@
+{
+  "name": "brute_force",
+  "description": "Automated response for brute force attack detection",
+  "trigger": "brute_force_alert",
+  "actions": [
+    {
+      "type": "block_ip",
+      "description": "Block source IP at firewall level",
+      "target": "source_ip"
+    },
+    {
+      "type": "disable_user",
+      "description": "Temporarily disable targeted account",
+      "target": "username"
+    },
+    {
+      "type": "notify",
+      "description": "Send alert to SOC team via Slack",
+      "channel": "soc-alerts"
+    },
+    {
+      "type": "isolate_host",
+      "description": "Isolate affected host from network",
+      "target": "hostname"
+    }
+  ],
+  "escalation": {
+    "timeframe_minutes": 30,
+    "escalate_to": "soc-lead"
+  }
+}

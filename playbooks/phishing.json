@@ -1,0 +1,21 @@
+{
+  "name": "phishing",
+  "description": "Response playbook for phishing attack detection",
+  "trigger": "phishing_alert",
+  "actions": [
+    {
+      "type": "notify",
+      "description": "Alert SOC team about phishing attempt",
+      "channel": "soc-alerts"
+    },
+    {
+      "type": "disable_user",
+      "description": "Disable user who clicked phishing link",
+      "target": "username"
+    }
+  ],
+  "escalation": {
+    "timeframe_minutes": 10,
+    "escalate_to": "soc-lead"
+  }
+}

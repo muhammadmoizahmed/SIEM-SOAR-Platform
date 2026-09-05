@@ -1,0 +1,5 @@
+[
+  {"timestamp": "2026-09-05T10:05:00", "source_ip": "10.0.0.25", "username": "john", "event_type": "authentication", "action": "login", "status": "failed", "hostname": "DC-01"},
+  {"timestamp": "2026-09-05T10:05:10", "source_ip": "10.0.0.25", "username": "john", "event_type": "authentication", "action": "login", "status": "failed", "hostname": "DC-01"},
+  {"timestamp": "2026-09-05T10:05:20", "source_ip": "10.0.0.25", "username": "john", "event_type": "authentication", "action": "login", "status": "success", "hostname": "DC-01"}
+]

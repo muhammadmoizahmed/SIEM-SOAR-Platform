@@ -1,0 +1,81 @@
+[
+  {
+    "TimeCreated": "2026-09-04T18:20:00",
+    "Computer": "WIN-SERVER",
+    "EventID": 4625,
+    "EventData": {
+      "TargetUserName": "admin",
+      "IpAddress": "192.168.1.50",
+      "LogonType": 10
+    }
+  },
+  {
+    "TimeCreated": "2026-09-04T18:20:05",
+    "Computer": "WIN-SERVER",
+    "EventID": 4625,
+    "EventData": {
+      "TargetUserName": "admin",
+      "IpAddress": "192.168.1.50",
+      "LogonType": 10
+    }
+  },
+  {
+    "TimeCreated": "2026-09-04T18:20:10",
+    "Computer": "WIN-SERVER",
+    "EventID": 4625,
+    "EventData": {
+      "TargetUserName": "admin",
+      "IpAddress": "192.168.1.50",
+      "LogonType": 10
+    }
+  },
+  {
+    "TimeCreated": "2026-09-04T18:20:15",
+    "Computer": "WIN-SERVER",
+    "EventID": 4625,
+    "EventData": {
+      "TargetUserName": "admin",
+      "IpAddress": "192.168.1.50",
+      "LogonType": 10
+    }
+  },
+  {
+    "TimeCreated": "2026-09-04T18:20:20",
+    "Computer": "WIN-SERVER",
+    "EventID": 4625,
+    "EventData": {
+      "TargetUserName": "admin",
+      "IpAddress": "192.168.1.50",
+      "LogonType": 10
+    }
+  },
+  {
+    "TimeCreated": "2026-09-04T18:25:00",
+    "Computer": "WIN-SERVER",
+    "EventID": 4624,
+    "EventData": {
+      "TargetUserName": "admin",
+      "IpAddress": "192.168.1.50",
+      "LogonType": 10
+    }
+  },
+  {
+    "TimeCreated": "2026-09-04T19:00:00",
+    "Computer": "WIN-SERVER",
+    "EventID": 4672,
+    "EventData": {
+      "SubjectUserName": "admin",
+      "IpAddress": null
+    }
+  },
+  {
+    "TimeCreated": "2026-09-04T19:05:00",
+    "Computer": "WIN-SERVER",
+    "EventID": 4688,
+    "EventData": {
+      "SubjectUserName": "admin",
+      "NewProcessName": "C:\\Windows\\System32\\cmd.exe",
+      "CommandLine": "cmd.exe /c whoami"
+    }
+  }
+]

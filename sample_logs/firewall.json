@@ -1,0 +1,65 @@
+[
+  {
+    "timestamp": "2026-09-04T18:20:00",
+    "src_ip": "203.0.113.50",
+    "dest_ip": "192.168.1.10",
+    "dest_port": 3389,
+    "action": "deny",
+    "protocol": "tcp",
+    "hostname": "FW-01"
+  },
+  {
+    "timestamp": "2026-09-04T18:20:05",
+    "src_ip": "203.0.113.50",
+    "dest_ip": "192.168.1.10",
+    "dest_port": 3389,
+    "action": "deny",
+    "protocol": "tcp",
+    "hostname": "FW-01"
+  },
+  {
+    "timestamp": "2026-09-04T18:20:10",
+    "src_ip": "203.0.113.50",
+    "dest_ip": "192.168.1.10",
+    "dest_port": 3389,
+    "action": "deny",
+    "protocol": "tcp",
+    "hostname": "FW-01"
+  },
+  {
+    "timestamp": "2026-09-04T18:20:15",
+    "src_ip": "203.0.113.50",
+    "dest_ip": "192.168.1.10",
+    "dest_port": 3389,
+    "action": "deny",
+    "protocol": "tcp",
+    "hostname": "FW-01"
+  },
+  {
+    "timestamp": "2026-09-04T18:20:20",
+    "src_ip": "203.0.113.50",
+    "dest_ip": "192.168.1.10",
+    "dest_port": 3389,
+    "action": "deny",
+    "protocol": "tcp",
+    "hostname": "FW-01"
+  },
+  {
+    "timestamp": "2026-09-04T18:30:00",
+    "src_ip": "192.168.1.50",
+    "dest_ip": "192.168.1.10",
+    "dest_port": 443,
+    "action": "allow",
+    "protocol": "tcp",
+    "hostname": "FW-01"
+  },
+  {
+    "timestamp": "2026-09-04T18:30:05",
+    "src_ip": "192.168.1.50",
+    "dest_ip": "10.0.0.25",
+    "dest_port": 53,
+    "action": "allow",
+    "protocol": "udp",
+    "hostname": "FW-01"
+  }
+]

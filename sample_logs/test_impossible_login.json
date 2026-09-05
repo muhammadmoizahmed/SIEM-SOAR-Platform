@@ -1,0 +1,4 @@
+[
+  {"timestamp": "2026-09-05T10:15:00", "source_ip": "203.0.113.50", "username": "admin", "event_type": "authentication", "action": "login", "status": "success", "hostname": "SRV-01", "geo_location": {"country": "Pakistan", "city": "Karachi"}},
+  {"timestamp": "2026-09-05T10:15:30", "source_ip": "198.51.100.23", "username": "admin", "event_type": "authentication", "action": "login", "status": "success", "hostname": "SRV-01", "geo_location": {"country": "Russia", "city": "Moscow"}}
+]

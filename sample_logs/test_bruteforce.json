@@ -1,0 +1,7 @@
+[
+  {"timestamp": "2026-09-05T10:00:00", "source_ip": "192.168.1.50", "username": "admin", "event_type": "authentication", "action": "login", "status": "failed", "hostname": "WIN-SERVER"},
+  {"timestamp": "2026-09-05T10:00:05", "source_ip": "192.168.1.50", "username": "admin", "event_type": "authentication", "action": "login", "status": "failed", "hostname": "WIN-SERVER"},
+  {"timestamp": "2026-09-05T10:00:10", "source_ip": "192.168.1.50", "username": "admin", "event_type": "authentication", "action": "login", "status": "failed", "hostname": "WIN-SERVER"},
+  {"timestamp": "2026-09-05T10:00:15", "source_ip": "192.168.1.50", "username": "admin", "event_type": "authentication", "action": "login", "status": "failed", "hostname": "WIN-SERVER"},
+  {"timestamp": "2026-09-05T10:00:20", "source_ip": "192.168.1.50", "username": "admin", "event_type": "authentication", "action": "login", "status": "failed", "hostname": "WIN-SERVER"}
+]
